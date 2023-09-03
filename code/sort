@@ -1,0 +1,137 @@
+
+from numpy import random
+import tkinter as tk
+from tkinter import simpledialog, messagebox
+
+
+def selectionMenu():
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    def exit_program():
+        root.destroy()  # Close the Tkinter window
+        root.quit()  # Terminate the mainloop
+
+    while True:
+        choice = simpledialog.askstring("Selection Menu", "Please select option:\n (a) random\n (b) enter array length")
+
+        if choice is None:  # User closed the dialog
+            return None, None, True
+
+        if choice == 'a':
+            randomSelect = random.randint(1, 100)
+            generated_array = createArray(randomSelect, None)
+            print(f"Generated Array: {generated_array}")
+            sort_choice = simpledialog.askstring("Sort Order",
+                                                 "Sort the array in (a) ascending or (d) descending order:")
+            if sort_choice == 'a':
+                animateSort(generated_array, ascending=True)
+            elif sort_choice == 'd':
+                animateSort(generated_array, ascending=False)  # Call with descending order
+            else:
+                print("Invalid sort choice.")
+                continue
+            messagebox.showinfo("Sorted Array", f"Sorted Array: {generated_array}")
+            return randomSelect, None, False
+        elif choice == 'b':
+            userInput = simpledialog.askinteger("Enter Array Length", "Enter array length:")
+            if userInput is None:
+                continue
+            elif userInput == 0:
+                print('Invalid array length')
+            else:
+                generated_array = createArray(None, userInput)
+                print(f"Generated Array: {generated_array}")
+                sort_choice = simpledialog.askstring("Sort Order",
+                                                     "Sort the array in (a) ascending or (d) descending order:")
+                if sort_choice == 'a':
+                    generated_array = sortArray(generated_array)
+                elif sort_choice == 'd':
+                    generated_array = sortArray(generated_array)[::-1]
+                else:
+                    print("Invalid sort choice.")
+                    continue
+                messagebox.showinfo("Sorted Array", f"Sorted Array:{generated_array}")
+                exit_program()
+                return None, userInput, False
+        else:
+            print("Invalid input, please try again")
+
+
+def createArray(randomSelect, userInput):
+    if userInput is not None:
+        x = random.randint(100, size=userInput)
+        return x
+
+    if randomSelect > 0:
+        x = random.randint(100, size=randomSelect)
+        return x
+
+    return []
+
+
+def animateSort(arr, ascending=True):
+    def draw_bars():
+        canvas.delete("all")
+        bar_width = canvas_width // len(arr)
+        for i in range(len(arr)):
+            canvas.create_rectangle(i * bar_width, canvas_height, (i + 1) * bar_width, canvas_height - arr[i] * 3,
+                                    fill="blue")
+        root.update()
+
+    def sort_step():
+        nonlocal step
+        if step < len(arr):
+            if ascending:
+                min_index = min(range(step, len(arr)), key=lambda i: arr[i])
+                arr[step], arr[min_index] = arr[min_index], arr[step]
+            else:
+                max_index = max(range(step, len(arr)), key=lambda i: arr[i])
+                arr[step], arr[max_index] = arr[max_index], arr[step]
+            step += 1
+            draw_bars()
+            root.after(100, sort_step)
+
+    canvas_width = 800
+    canvas_height = 400
+    step = 0
+
+    root = tk.Tk()
+    root.title("Sorting Animation")
+    canvas = tk.Canvas(root, width=canvas_width, height=canvas_height)
+    canvas.pack()
+
+    draw_bars()
+    sort_step()
+
+    root.mainloop()
+
+
+def sortArray(x):
+    for i in range(len(x)):
+        for j in range(i + 1, len(x)):
+            if x[i] > x[j]:
+                x[i], x[j] = x[j], x[i]
+
+    return x
+
+
+def start():
+    randomSelect, userInput, exit_flag = selectionMenu()
+    if not exit_flag:
+        if randomSelect is not None:
+            print(f"Random Selection: {randomSelect}")
+        if userInput is not None:
+            print(f"User Input: {userInput}")
+
+    createdArray = createArray(randomSelect, userInput)
+
+    if userInput is not None:
+        sortedArray = sortArray(createdArray)
+        print(f"\nSorted Array: {sortedArray}")
+    else:
+        print("\nSorting animation will start.")
+        animateSort(createdArray, ascending=True)
+
+
+start()
